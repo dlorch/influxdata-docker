@@ -1,8 +1,17 @@
 FROM buildpack-deps:stretch-curl
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get update && \
-    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iputils-ping snmp procps lm-sensors && \
-    rm -rf /var/lib/apt/lists/*
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends iputils-ping snmp procps lm-sensors gnupg1 apt-transport-https dirmngr
+
+RUN DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends gnupg1 apt-transport-https dirmngr lsb-release && \
+    export INSTALL_KEY=379CE192D401AB61 && \
+    export DEB_DISTRO=$(lsb_release -sc) && \
+    apt-key adv --keyserver keyserver.ubuntu.com --recv-keys $INSTALL_KEY && \
+    echo "deb https://ookla.bintray.com/debian ${DEB_DISTRO} main" | tee /etc/apt/sources.list.d/speedtest.list && \
+    DEBIAN_FRONTEND=noninteractive apt-get update && \
+    DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends speedtest
+
+RUN rm -rf /var/lib/apt/lists/*
 
 RUN set -ex && \
     for key in \
